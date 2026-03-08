@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   CheckCircle,
@@ -45,13 +44,11 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ExternalBlob } from "../backend";
-import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   PostType,
   useCreatePost,
   useDeletePost,
   useGetAllPosts,
-  useIsAdmin,
 } from "../hooks/useQueries";
 import { formatRelativeTime } from "../utils/time";
 
@@ -65,9 +62,6 @@ const POST_TYPE_OPTIONS = [
 ];
 
 export default function AdminPage() {
-  const { login, isLoggingIn, identity } = useInternetIdentity();
-  const queryClient = useQueryClient();
-  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
   const { data: posts, isLoading: postsLoading } = useGetAllPosts();
   const createPost = useCreatePost();
   const deletePost = useDeletePost();
@@ -88,43 +82,22 @@ export default function AdminPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isAuthenticated = !!identity;
   const acceptsFile =
     postType === PostType.image || postType === PostType.video;
   const selectedTypeConfig = POST_TYPE_OPTIONS.find(
     (o) => o.value === postType,
   );
 
-  const handleLogin = async () => {
-    try {
-      await login();
-    } catch (error: unknown) {
-      if (
-        error instanceof Error &&
-        error.message === "User is already authenticated"
-      ) {
-        await queryClient.refetchQueries({ queryKey: ["isAdmin"] });
-      }
-    }
-  };
-
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
+    setIsSubmittingLogin(true);
     if (usernameInput === ADMIN_USERNAME && passwordInput === ADMIN_PASSWORD) {
-      setIsSubmittingLogin(true);
       setAdminLoggedIn(true);
-      // Auto-trigger Internet Identity login as second step
-      try {
-        await handleLogin();
-      } catch {
-        // II login errors are handled inside handleLogin
-      } finally {
-        setIsSubmittingLogin(false);
-      }
     } else {
       setLoginError("Invalid username or password");
     }
+    setIsSubmittingLogin(false);
   };
 
   const handleAdminLogout = () => {
@@ -181,7 +154,7 @@ export default function AdminPage() {
   };
 
   // Loading state
-  if (adminLoading) {
+  if (postsLoading && adminLoggedIn) {
     return (
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
         <div data-ocid="admin.loading_state" className="space-y-6">
@@ -294,16 +267,11 @@ export default function AdminPage() {
             {/* Submit */}
             <Button
               type="submit"
-              disabled={
-                isSubmittingLogin ||
-                isLoggingIn ||
-                !usernameInput ||
-                !passwordInput
-              }
+              disabled={isSubmittingLogin || !usernameInput || !passwordInput}
               data-ocid="admin.login_submit_button"
               className="w-full gap-2 bg-fire-gradient font-body font-semibold text-primary-foreground shadow-fire-sm hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
             >
-              {isSubmittingLogin || isLoggingIn ? (
+              {isSubmittingLogin ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Verifying...
@@ -316,56 +284,6 @@ export default function AdminPage() {
               )}
             </Button>
           </form>
-        </motion.div>
-      </main>
-    );
-  }
-
-  // Step 2: Credentials passed but Internet Identity / isAdmin not yet confirmed
-  if (!isAuthenticated || !isAdmin) {
-    return (
-      <main className="mx-auto max-w-md px-4 py-16 sm:px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center gap-6 rounded-2xl border border-border/50 bg-card p-12 text-center fire-border"
-        >
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-fire-gradient shadow-fire">
-            <Shield className="h-8 w-8 text-primary-foreground" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="font-display text-2xl font-black text-foreground">
-              {!isAuthenticated ? "One More Step" : "Access Denied"}
-            </h1>
-            <p className="font-body text-sm text-muted-foreground">
-              {!isAuthenticated
-                ? "Complete identity verification to access the admin panel."
-                : "Your account does not have admin permissions."}
-            </p>
-          </div>
-          {!isAuthenticated && (
-            <Button
-              onClick={handleLogin}
-              disabled={isLoggingIn}
-              data-ocid="nav.login_button"
-              className="gap-2 bg-fire-gradient px-6 font-body font-semibold text-primary-foreground shadow-fire-sm hover:opacity-90"
-            >
-              {isLoggingIn ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <LogIn className="h-4 w-4" />
-              )}
-              {isLoggingIn ? "Verifying..." : "Complete Verification"}
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            onClick={handleAdminLogout}
-            className="gap-2 font-body text-sm text-muted-foreground hover:text-foreground"
-          >
-            <LogOut className="h-4 w-4" />
-            Back to Login
-          </Button>
         </motion.div>
       </main>
     );
@@ -516,7 +434,7 @@ export default function AdminPage() {
                   {postType === PostType.image ? "Image" : "Video"} File
                 </Label>
 
-                {/* Drag-and-drop zone — outer div handles drag events, inner button handles clicks */}
+                {/* Drag-and-drop zone */}
                 <div
                   data-ocid="admin.dropzone"
                   onDragOver={(e) => {
