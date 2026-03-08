@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Funfire Design System ─────────────────────────────────────────────── */
+
+/* Fonts */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("/assets/fonts/BricolageGrotesque[opsz,wdth,wght].woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/assets/fonts/CabinetGrotesk-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sora";
+  src: url("/assets/fonts/Sora[wght].woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 0.75rem;
+
+    /* Dark-first: Funfire uses a bold dark theme */
+    --background: 0.1 0 0;
+    --foreground: 0.96 0.01 85;
+    --card: 0.13 0 0;
+    --card-foreground: 0.96 0.01 85;
+    --popover: 0.15 0.005 50;
+    --popover-foreground: 0.96 0.01 85;
+
+    /* Fire accent: vivid orange */
+    --primary: 0.68 0.19 45;
+    --primary-foreground: 0.08 0 0;
+
+    --secondary: 0.18 0.005 50;
+    --secondary-foreground: 0.9 0.01 85;
+
+    --muted: 0.17 0.005 50;
+    --muted-foreground: 0.58 0.01 60;
+
+    --accent: 0.65 0.22 32;
+    --accent-foreground: 0.08 0 0;
+
+    --destructive: 0.60 0.22 22;
+    --destructive-foreground: 0.98 0 0;
+
+    --border: 0.22 0.01 50;
+    --input: 0.2 0.01 50;
+    --ring: 0.68 0.19 45;
+
+    --chart-1: 0.72 0.21 45;
+    --chart-2: 0.65 0.22 25;
+    --chart-3: 0.78 0.18 65;
+    --chart-4: 0.55 0.2 300;
+    --chart-5: 0.62 0.23 15;
+
+    --sidebar: 0.12 0 0;
+    --sidebar-foreground: 0.92 0.01 85;
+    --sidebar-primary: 0.68 0.19 45;
+    --sidebar-primary-foreground: 0.08 0 0;
+    --sidebar-accent: 0.18 0.005 50;
+    --sidebar-accent-foreground: 0.9 0.01 85;
+    --sidebar-border: 0.22 0.01 50;
+    --sidebar-ring: 0.68 0.19 45;
+
+    /* Custom Funfire tokens */
+    --fire-orange: 0.68 0.19 45;
+    --fire-red: 0.58 0.22 25;
+    --fire-yellow: 0.82 0.17 75;
+    --ember: 0.72 0.20 38;
+    --deep-dark: 0.08 0 0;
+    --surface: 0.14 0.005 45;
+    --surface-elevated: 0.18 0.007 45;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Sora", "Cabinet Grotesk", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: oklch(0.12 0 0);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.3 0.02 45);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.68 0.19 45 / 70%);
+  }
+}
+
+@layer utilities {
+  .text-fire {
+    background: linear-gradient(
+      90deg,
+      oklch(0.82 0.17 75) 0%,
+      oklch(0.68 0.19 45) 40%,
+      oklch(0.58 0.22 25) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-fire-gradient {
+    background: linear-gradient(
+      135deg,
+      oklch(0.68 0.19 45) 0%,
+      oklch(0.58 0.22 25) 60%,
+      oklch(0.45 0.18 15) 100%
+    );
+  }
+
+  .card-glow {
+    box-shadow:
+      0 0 0 1px oklch(0.22 0.01 50),
+      0 4px 24px oklch(0 0 0 / 40%);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .card-glow:hover {
+    box-shadow:
+      0 0 0 1px oklch(0.68 0.19 45 / 40%),
+      0 8px 40px oklch(0.68 0.19 45 / 15%),
+      0 4px 24px oklch(0 0 0 / 50%);
+  }
+
+  .noise-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .fire-border {
+    position: relative;
+  }
+
+  .fire-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      oklch(0.68 0.19 45 / 60%),
+      oklch(0.58 0.22 25 / 30%),
+      oklch(0.22 0.01 50 / 0%)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
